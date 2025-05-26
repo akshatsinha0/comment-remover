@@ -1,41 +1,103 @@
 {
   "name": "comment-remover",
-  "displayName": "Comment Remover",
-  "description": "My extension will remove any sort or type of comments in the selected and under-inspection files in visual studio or the other bigger version.",
-  "version": "0.0.1",
+  "displayName": "Comment Remover Pro",
+  "description": "Remove all types of comments from any programming language file",
+  "version": "1.0.0",
+  "publisher": "akshatsinha0", 
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akshatsinha0/comment-remover.git"
+  },
   "engines": {
-    "vscode": "^1.100.0"
+    "vscode": "^1.85.0"
   },
   "categories": [
+    "Formatters",
     "Other"
+  ],
+  "keywords": [
+    "comments",
+    "remove",
+    "clean",
+    "format",
+    "javascript",
+    "python",
+    "html",
+    "css"
   ],
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "comment-remover.removeComments",
-        "title": "Remove All Comments"
+        "command": "comment-remover.removeAllComments",
+        "title": "Remove All Comments",
+        "category": "Comment Remover"
+      },
+      {
+        "command": "comment-remover.removeSingleLineComments",
+        "title": "Remove Single-line Comments Only",
+        "category": "Comment Remover"
+      },
+      {
+        "command": "comment-remover.removeMultiLineComments",
+        "title": "Remove Multi-line Comments Only",
+        "category": "Comment Remover"
       }
-    ]
+    ],
+    "keybindings": [
+      {
+        "command": "comment-remover.removeAllComments",
+        "key": "ctrl+shift+alt+/",
+        "when": "editorTextFocus"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "comment-remover.removeAllComments",
+          "group": "1_modification",
+          "when": "editorTextFocus"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Comment Remover",
+      "properties": {
+        "commentRemover.preserveWhitespace": {
+          "type": "boolean",
+          "default": true,
+          "description": "Preserve whitespace when removing comments"
+        },
+        "commentRemover.showConfirmationDialog": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show confirmation dialog before removing comments"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
-    "@types/node": "20.x",
-    "@types/vscode": "^1.100.0",
-    "@typescript-eslint/eslint-plugin": "^8.31.1",
-    "@typescript-eslint/parser": "^8.31.1",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.5.2",
-    "eslint": "^9.25.1",
-    "typescript": "^5.8.3"
-  }
+    "@types/node": "18.x",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "@vscode/vsce": "^2.22.0"
+  },
+  "license": "MIT" 
 }
