@@ -1,4 +1,7 @@
 import * as vscode from 'vscode';
+import { CommentManager } from './core/commentManager';
+
+const commentManager = new CommentManager();
 
 interface CommentPattern {
     singleLine?: RegExp;
@@ -57,6 +60,18 @@ const languagePatterns: { [key: string]: CommentPattern } = {
     },
     'xml': {
         multiLine: /<!--[\s\S]*?-->/gm
+    },
+    'scss': {
+        singleLine: /\/\/.*$/gm,
+        multiLine: /\/\*[\s\S]*?\*\//gm
+    },
+    'sass': {
+        singleLine: /\/\/.*$/gm,
+        multiLine: /\/\*[\s\S]*?\*\//gm
+    },
+    'less': {
+        singleLine: /\/\/.*$/gm,
+        multiLine: /\/\*[\s\S]*?\*\//gm
     }
 };
 
@@ -109,31 +124,75 @@ async function executeCommentRemoval(type: 'all' | 'single' | 'multi') {
 
     const document = editor.document;
     const languageId = document.languageId;
-    const patterns = getCommentPatterns(languageId);
-    
-    const originalText = document.getText();
-    const cleanedText = removeComments(originalText, patterns, type);
-    
-    if (originalText === cleanedText) {
-        vscode.window.showInformationMessage('No comments found to remove');
+
+    try {
+        // Try using the advanced comment manager first
+        const cleanedText = await commentManager.removeComments(document, type);
+        
+        const originalText = document.getText();
+        if (originalText === cleanedText) {
+            vscode.window.showInformationMessage('No comments found to remove');
+            return;
+        }
+
+        await editor.edit(editBuilder => {
+            const fullRange = new vscode.Range(
+                document.positionAt(0),
+                document.positionAt(originalText.length)
+            );
+            editBuilder.replace(fullRange, cleanedText);
+        });
+
+        const typeLabel = type === 'all' ? 'All comments' : 
+                         type === 'single' ? 'Single-line comments' : 'Multi-line comments';
+        vscode.window.showInformationMessage(`${typeLabel} removed successfully from ${languageId} file`);
+
+    } catch (error) {
+        // Fallback to regex-based removal
+        console.log('Falling back to regex-based removal');
+        const patterns = getCommentPatterns(languageId);
+        const originalText = document.getText();
+        const cleanedText = removeComments(originalText, patterns, type);
+        
+        if (originalText === cleanedText) {
+            vscode.window.showInformationMessage('No comments found to remove');
+            return;
+        }
+
+        await editor.edit(editBuilder => {
+            const fullRange = new vscode.Range(
+                document.positionAt(0),
+                document.positionAt(originalText.length)
+            );
+            editBuilder.replace(fullRange, cleanedText);
+        });
+
+        const typeLabel = type === 'all' ? 'All comments' : 
+                         type === 'single' ? 'Single-line comments' : 'Multi-line comments';
+        vscode.window.showInformationMessage(`${typeLabel} removed successfully from ${languageId} file (fallback mode)`);
+    }
+}
+
+async function executeLanguageSpecificRemoval(targetLanguage: string) {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showErrorMessage('No active editor found');
         return;
     }
 
-    await editor.edit(editBuilder => {
-        const fullRange = new vscode.Range(
-            document.positionAt(0),
-            document.positionAt(originalText.length)
-        );
-        editBuilder.replace(fullRange, cleanedText);
-    });
+    const document = editor.document;
+    if (document.languageId !== targetLanguage) {
+        vscode.window.showWarningMessage(`This command is for ${targetLanguage.toUpperCase()} files only`);
+        return;
+    }
 
-    const typeLabel = type === 'all' ? 'All comments' : 
-                     type === 'single' ? 'Single-line comments' : 'Multi-line comments';
-    vscode.window.showInformationMessage(`${typeLabel} removed successfully from ${languageId} file`);
+    await executeCommentRemoval('all');
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    // Register all commands
+    console.log('Comment Remover Pro extension is now active!');
+
+    // Register main commands
     const removeAllDisposable = vscode.commands.registerCommand(
         'comment-remover.removeAllComments',
         () => executeCommentRemoval('all')
@@ -149,7 +208,47 @@ export function activate(context: vscode.ExtensionContext) {
         () => executeCommentRemoval('multi')
     );
 
-    context.subscriptions.push(removeAllDisposable, removeSingleDisposable, removeMultiDisposable);
+    // Register language-specific commands
+    const removeHtmlDisposable = vscode.commands.registerCommand(
+        'comment-remover.removeHtmlComments',
+        () => executeLanguageSpecificRemoval('html')
+    );
+
+    const removeCssDisposable = vscode.commands.registerCommand(
+        'comment-remover.removeCssComments',
+        () => executeLanguageSpecificRemoval('css')
+    );
+
+    const removeJsDisposable = vscode.commands.registerCommand(
+        'comment-remover.removeJsComments',
+        () => executeLanguageSpecificRemoval('javascript')
+    );
+
+    const removePyDisposable = vscode.commands.registerCommand(
+        'comment-remover.removePyComments',
+        () => executeLanguageSpecificRemoval('python')
+    );
+
+    // Register status bar item
+    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    statusBarItem.command = 'comment-remover.removeAllComments';
+    statusBarItem.text = '$(comment) Remove Comments';
+    statusBarItem.tooltip = 'Remove all comments from current file';
+    statusBarItem.show();
+
+    // Add all disposables to context
+    context.subscriptions.push(
+        removeAllDisposable, 
+        removeSingleDisposable, 
+        removeMultiDisposable,
+        removeHtmlDisposable,
+        removeCssDisposable,
+        removeJsDisposable,
+        removePyDisposable,
+        statusBarItem
+    );
 }
 
-export function deactivate() {}
+export function deactivate() {
+    console.log('Comment Remover Pro extension is now deactivated!');
+}
