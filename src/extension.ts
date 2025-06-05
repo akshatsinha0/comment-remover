@@ -1,7 +1,4 @@
 import * as vscode from 'vscode';
-import { CommentManager } from './core/commentManager';
-
-const commentManager = new CommentManager();
 
 interface CommentPattern {
     singleLine?: RegExp;
@@ -124,69 +121,27 @@ async function executeCommentRemoval(type: 'all' | 'single' | 'multi') {
 
     const document = editor.document;
     const languageId = document.languageId;
-
-    try {
-        // Try using the advanced comment manager first
-        const cleanedText = await commentManager.removeComments(document, type);
-        
-        const originalText = document.getText();
-        if (originalText === cleanedText) {
-            vscode.window.showInformationMessage('No comments found to remove');
-            return;
-        }
-
-        await editor.edit(editBuilder => {
-            const fullRange = new vscode.Range(
-                document.positionAt(0),
-                document.positionAt(originalText.length)
-            );
-            editBuilder.replace(fullRange, cleanedText);
-        });
-
-        const typeLabel = type === 'all' ? 'All comments' : 
-                         type === 'single' ? 'Single-line comments' : 'Multi-line comments';
-        vscode.window.showInformationMessage(`${typeLabel} removed successfully from ${languageId} file`);
-
-    } catch (error) {
-        // Fallback to regex-based removal
-        console.log('Falling back to regex-based removal');
-        const patterns = getCommentPatterns(languageId);
-        const originalText = document.getText();
-        const cleanedText = removeComments(originalText, patterns, type);
-        
-        if (originalText === cleanedText) {
-            vscode.window.showInformationMessage('No comments found to remove');
-            return;
-        }
-
-        await editor.edit(editBuilder => {
-            const fullRange = new vscode.Range(
-                document.positionAt(0),
-                document.positionAt(originalText.length)
-            );
-            editBuilder.replace(fullRange, cleanedText);
-        });
-
-        const typeLabel = type === 'all' ? 'All comments' : 
-                         type === 'single' ? 'Single-line comments' : 'Multi-line comments';
-        vscode.window.showInformationMessage(`${typeLabel} removed successfully from ${languageId} file (fallback mode)`);
-    }
-}
-
-async function executeLanguageSpecificRemoval(targetLanguage: string) {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-        vscode.window.showErrorMessage('No active editor found');
+    const patterns = getCommentPatterns(languageId);
+    
+    const originalText = document.getText();
+    const cleanedText = removeComments(originalText, patterns, type);
+    
+    if (originalText === cleanedText) {
+        vscode.window.showInformationMessage('No comments found to remove');
         return;
     }
 
-    const document = editor.document;
-    if (document.languageId !== targetLanguage) {
-        vscode.window.showWarningMessage(`This command is for ${targetLanguage.toUpperCase()} files only`);
-        return;
-    }
+    await editor.edit(editBuilder => {
+        const fullRange = new vscode.Range(
+            document.positionAt(0),
+            document.positionAt(originalText.length)
+        );
+        editBuilder.replace(fullRange, cleanedText);
+    });
 
-    await executeCommentRemoval('all');
+    const typeLabel = type === 'all' ? 'All comments' : 
+                     type === 'single' ? 'Single-line comments' : 'Multi-line comments';
+    vscode.window.showInformationMessage(`${typeLabel} removed successfully from ${languageId} file`);
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -208,45 +163,7 @@ export function activate(context: vscode.ExtensionContext) {
         () => executeCommentRemoval('multi')
     );
 
-    // Register language-specific commands
-    const removeHtmlDisposable = vscode.commands.registerCommand(
-        'comment-remover.removeHtmlComments',
-        () => executeLanguageSpecificRemoval('html')
-    );
-
-    const removeCssDisposable = vscode.commands.registerCommand(
-        'comment-remover.removeCssComments',
-        () => executeLanguageSpecificRemoval('css')
-    );
-
-    const removeJsDisposable = vscode.commands.registerCommand(
-        'comment-remover.removeJsComments',
-        () => executeLanguageSpecificRemoval('javascript')
-    );
-
-    const removePyDisposable = vscode.commands.registerCommand(
-        'comment-remover.removePyComments',
-        () => executeLanguageSpecificRemoval('python')
-    );
-
-    // Register status bar item
-    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarItem.command = 'comment-remover.removeAllComments';
-    statusBarItem.text = '$(comment) Remove Comments';
-    statusBarItem.tooltip = 'Remove all comments from current file';
-    statusBarItem.show();
-
-    // Add all disposables to context
-    context.subscriptions.push(
-        removeAllDisposable, 
-        removeSingleDisposable, 
-        removeMultiDisposable,
-        removeHtmlDisposable,
-        removeCssDisposable,
-        removeJsDisposable,
-        removePyDisposable,
-        statusBarItem
-    );
+    context.subscriptions.push(removeAllDisposable, removeSingleDisposable, removeMultiDisposable);
 }
 
 export function deactivate() {
