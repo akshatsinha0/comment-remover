@@ -1,4 +1,6 @@
 {
+  "$schema": "https://json.schemastore.org/package",
+  
   "name": "comment-remover-pro",
   "displayName": "Comment Remover Pro",
   "description": "Remove all types of comments from any programming language file",
@@ -9,7 +11,7 @@
     "url": "https://github.com/akshatsinha0/comment-remover.git"
   },
   "engines": {
-    "vscode": "^1.100.0"
+    "vscode": "^1.100.1"
   },
   "categories": [
     "Formatters",

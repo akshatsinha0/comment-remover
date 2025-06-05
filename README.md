@@ -24,15 +24,15 @@ A powerful VS Code extension to remove all types of comments from your code file
 
 ## Supported Languages
 
-- JavaScript/TypeScript (// and /* */)
-- Python (# and docstrings)
-- HTML/XML (<!-- -->)
-- CSS (/* */)
-- Java/C/C++ (// and /* */)
-- PHP (// # and /* */)
-- Ruby (# and =begin =end)
-- Shell/Bash (#)
-- YAML (#)
+- JavaScript/TypeScript (`//` and `/**/`)
+- Python (`#` and docstrings)
+- HTML/XML (`<!-- -->`)
+- CSS (`/**/`)
+- Java/C/C++ (`//` and `/**/`)
+- PHP (`//`, `#` and `/**/`)
+- Ruby (`#` and `=begin =end`)
+- Shell/Bash (`#`)
+- YAML (`#`)
 
 ## Extension Settings
 
@@ -42,6 +42,7 @@ A powerful VS Code extension to remove all types of comments from your code file
 ## Release Notes
 
 ### 1.0.0
+
 - Initial release with multi-language support
 - Three removal modes
 - Keyboard shortcuts and context menu integration
