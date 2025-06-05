@@ -1,10 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/package",
-  
   "name": "comment-remover-pro",
   "displayName": "Comment Remover Pro",
   "description": "Remove all types of comments from any programming language file",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "akshatsinha0",
   "repository": {
     "type": "git",
