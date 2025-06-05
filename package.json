@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schemastore.azurewebsites.net/schemas/json/package.json",
+  "$schema": "https://json.schemastore.org/package",
   "name": "comment-remover-pro",
   "displayName": "Comment Remover Pro",
   "description": "Remove all types of comments from any programming language file",
