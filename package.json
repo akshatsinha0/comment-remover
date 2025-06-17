@@ -80,6 +80,7 @@
     }
   },
   "scripts": {
+    "patch": "npm version patch -m \"Upgrade to %s\"",
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
