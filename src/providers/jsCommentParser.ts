@@ -7,9 +7,14 @@ export class JsCommentParser {
 
   public removeComments(code: string): string {
     try {
+      // Special case: Remove JSX-style comments of the form {/* ... */} including the curly braces
+      // This regex matches { /* ... */ } with optional whitespace after the opening brace and before the closing brace
+      code = code.replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, '');
+
+      // Use Babel parser with JSX support
       const ast = parse(code, {
         sourceType: 'module',
-        plugins: ['typescript'],
+        plugins: ['typescript', 'jsx'],
         attachComment: false
       });
       
